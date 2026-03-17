@@ -16,6 +16,8 @@ public class PlayerBehavior : MonoBehaviour
     [SerializeField] Transform groundCheck;
     [SerializeField] LayerMask groundLayer;
 
+    public bool isLocked;
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -71,9 +73,16 @@ public class PlayerBehavior : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(
+       if (!isLocked)
+        {
+            rb.linearVelocity = new Vector2(
             horizontalInput * velocity,
             rb.linearVelocity.y
-        );
+            );
+        }
+        else
+        {
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+        }
     }
 }

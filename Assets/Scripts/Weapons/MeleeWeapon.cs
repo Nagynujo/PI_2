@@ -5,19 +5,23 @@ public class MeleeWeapon : MonoBehaviour
 {
    
     [SerializeField] private Transform attackPoint;
-    [SerializeField] private float attackRange = 0.5f;
+    [SerializeField] private float attackRange = 2.0f;
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private Animator animator;
+    
+
+    private PlayerPoints playerPoints;
 
     [Header("Light Attack")]
     [SerializeField] private int lightDamage = 1;
     [SerializeField] private float lightCooldown = 0.3f;
-    [SerializeField] private float lightKnockback = 3f;
+    [SerializeField] private float lightKnockback = 5f;
 
     [Header("Heavy Attack")]
     [SerializeField] private int heavyDamage = 3;
     [SerializeField] private float heavyCooldown = 0.8f;
-    [SerializeField] private float heavyKnockback = 6f;
+    [SerializeField] private float heavyKnockback = 10f;
+
 
     private float nextLightTime;
     private float nextHeavyTime;
@@ -29,6 +33,11 @@ public class MeleeWeapon : MonoBehaviour
     {
         lightAction = new InputAction("Light", InputActionType.Button, "<Mouse>/leftButton");
         heavyAction = new InputAction("Heavy", InputActionType.Button, "<Mouse>/rightButton");
+    }
+
+    void Start()
+    {
+        playerPoints = FindObjectOfType<PlayerPoints>();
     }
 
     void OnEnable()
@@ -43,22 +52,24 @@ public class MeleeWeapon : MonoBehaviour
         heavyAction.Disable();
     }
 
-    void Update()
+   void Update()
+{
+    if (lightAction.WasPressedThisFrame() && Time.time >= nextLightTime)
     {
-        if (lightAction.WasPressedThisFrame() && Time.time >= nextLightTime)
-        {
-            //animator.SetTrigger("LightAttack");
-            nextLightTime = Time.time + lightCooldown;
-            Debug.Log("Light Attack");
-        }
+        nextLightTime = Time.time + lightCooldown;
+        Debug.Log("Light Attack");
 
-        if (heavyAction.WasPressedThisFrame() && Time.time >= nextHeavyTime)
-        {
-            //animator.SetTrigger("HeavyAttack");
-            nextHeavyTime = Time.time + heavyCooldown;
-             Debug.Log("Heavy Attack");
-        }
+        DealLightDamage(); 
     }
+
+    if (heavyAction.WasPressedThisFrame() && Time.time >= nextHeavyTime)
+    {
+        nextHeavyTime = Time.time + heavyCooldown;
+        Debug.Log("Heavy Attack");
+
+        DealHeavyDamage(); 
+    }
+}
 
    
     public void DealLightDamage()
@@ -82,18 +93,18 @@ public class MeleeWeapon : MonoBehaviour
 
         foreach (Collider2D enemy in hitEnemies)
         {
-            // Dano
+            
             enemy.SendMessage(
                 "TakeDamage",
                 damage,
                 SendMessageOptions.DontRequireReceiver
             );
 
-            // Direção do knockback
+            
             Vector2 direction = 
                 (enemy.transform.position - transform.position).normalized;
 
-            // Aplica força
+           
             enemy.SendMessage(
                 "ApplyKnockback",
                 direction * knockbackForce,
